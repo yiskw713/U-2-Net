@@ -55,9 +55,8 @@ def save_output(image_name,pred,d_dir):
 def main():
 
     # --------- 1. get image path and name ---------
-    model_name='u2net'#u2netp
     model_name="u2net_noside"
-
+    model_name='u2net'#u2netp
 
     image_dir = os.path.join(os.getcwd(), 'test_data', 'test_images')
     prediction_dir = os.path.join(os.getcwd(), 'test_data', model_name + '_results' + os.sep)
