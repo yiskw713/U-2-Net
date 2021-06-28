@@ -21,7 +21,7 @@ from data_loader import ToTensor
 from data_loader import ToTensorLab
 from data_loader import SalObjDataset
 
-from model import U2NET
+from model import U2NET, U2NET_NoSide
 from model import U2NETP
 
 # ------- 1. define loss function --------
@@ -39,7 +39,6 @@ def muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v):
 	loss6 = bce_loss(d6,labels_v)
 
 	loss = loss0 + loss1 + loss2 + loss3 + loss4 + loss5 + loss6
-	print("l0: %3f, l1: %3f, l2: %3f, l3: %3f, l4: %3f, l5: %3f, l6: %3f\n"%(loss0.data.item(),loss1.data.item(),loss2.data.item(),loss3.data.item(),loss4.data.item(),loss5.data.item(),loss6.data.item()))
 
 	return loss0, loss
 
@@ -57,7 +56,7 @@ label_ext = '.png'
 
 model_dir = os.path.join(os.getcwd(), 'saved_models', model_name + os.sep)
 
-epoch_num = 100000
+epoch_num = 350
 batch_size_train = 12
 batch_size_val = 1
 train_num = 0
@@ -97,6 +96,8 @@ salobj_dataloader = DataLoader(salobj_dataset, batch_size=batch_size_train, shuf
 # define the net
 if(model_name=='u2net'):
     net = U2NET(3, 1)
+if(model_name=='u2net_noside'):
+    net = U2NET_NoSide(3, 1)
 elif(model_name=='u2netp'):
     net = U2NETP(3,1)
 
@@ -138,8 +139,13 @@ for epoch in range(0, epoch_num):
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        d0, d1, d2, d3, d4, d5, d6 = net(inputs_v)
-        loss2, loss = muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v)
+        if model_name == "u2net_noside":
+            d = net(inputs_v)
+            loss = bce_loss(d,labels_v)
+            loss2 = loss
+        else:
+            d0, d1, d2, d3, d4, d5, d6 = net(inputs_v)
+            loss2, loss = muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v)
 
         loss.backward()
         optimizer.step()
@@ -148,8 +154,9 @@ for epoch in range(0, epoch_num):
         running_loss += loss.data.item()
         running_tar_loss += loss2.data.item()
 
-        # del temporary outputs and loss
-        del d0, d1, d2, d3, d4, d5, d6, loss2, loss
+        if model_name == "u2net_noside":
+            # del temporary outputs and loss
+            del d0, d1, d2, d3, d4, d5, d6, loss2, loss
 
         print("[epoch: %3d/%3d, batch: %5d/%5d, ite: %d] train loss: %3f, tar: %3f " % (
         epoch + 1, epoch_num, (i + 1) * batch_size_train, train_num, ite_num, running_loss / ite_num4val, running_tar_loss / ite_num4val))

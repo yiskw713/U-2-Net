@@ -20,6 +20,7 @@ from data_loader import SalObjDataset
 
 from model import U2NET # full size version 173.6 MB
 from model import U2NETP # small version u2net 4.7 MB
+from model import U2NET_NoSide
 
 # normalize the predicted SOD probability map
 def normPRED(d):
@@ -84,6 +85,9 @@ def main():
     elif(model_name=='u2netp'):
         print("...load U2NEP---4.7 MB")
         net = U2NETP(3,1)
+    elif(model_name=='u2net_noside'):
+        net = U2NET_NoSide(3,1)
+    
 
     if torch.cuda.is_available():
         net.load_state_dict(torch.load(model_dir))
@@ -105,18 +109,23 @@ def main():
         else:
             inputs_test = Variable(inputs_test)
 
-        d1,d2,d3,d4,d5,d6,d7= net(inputs_test)
-
-        # normalization
-        pred = d1[:,0,:,:]
-        pred = normPRED(pred)
+        if model_name == "u2net_noside":
+            out = net(inputs_test)
+            pred = out[:, 0, :, :]
+            pred = normPRED(pred)
+        else:
+            d1,d2,d3,d4,d5,d6,d7= net(inputs_test)
+            # normalization
+            pred = d1[:,0,:,:]
+            pred = normPRED(pred)
 
         # save results to test_results folder
         if not os.path.exists(prediction_dir):
             os.makedirs(prediction_dir, exist_ok=True)
         save_output(img_name_list[i_test],pred,prediction_dir)
 
-        del d1,d2,d3,d4,d5,d6,d7
+        if model_name != "u2net_noside":
+            del d1,d2,d3,d4,d5,d6,d7
 
 if __name__ == "__main__":
     main()
