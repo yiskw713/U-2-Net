@@ -46,10 +46,11 @@ def muti_bce_loss_fusion(d0, d1, d2, d3, d4, d5, d6, labels_v):
 # ------- 2. set the directory of training dataset --------
 
 model_name = 'u2net' #'u2netp'
+model_name = 'u2net_noside' #'u2netp'
 
 data_dir = os.path.join(os.getcwd(), 'train_data' + os.sep)
-tra_image_dir = os.path.join('DUTS', 'DUTS-TR', 'DUTS-TR', 'im_aug' + os.sep)
-tra_label_dir = os.path.join('DUTS', 'DUTS-TR', 'DUTS-TR', 'gt_aug' + os.sep)
+tra_image_dir = os.path.join('DUTS', 'DUTS-TR', 'DUTS-TR-Image' + os.sep)
+tra_label_dir = os.path.join('DUTS', 'DUTS-TR', 'DUTS-TR-Mask' + os.sep)
 
 image_ext = '.jpg'
 label_ext = '.png'
@@ -153,10 +154,6 @@ for epoch in range(0, epoch_num):
         # # print statistics
         running_loss += loss.data.item()
         running_tar_loss += loss2.data.item()
-
-        if model_name == "u2net_noside":
-            # del temporary outputs and loss
-            del d0, d1, d2, d3, d4, d5, d6, loss2, loss
 
         print("[epoch: %3d/%3d, batch: %5d/%5d, ite: %d] train loss: %3f, tar: %3f " % (
         epoch + 1, epoch_num, (i + 1) * batch_size_train, train_num, ite_num, running_loss / ite_num4val, running_tar_loss / ite_num4val))
